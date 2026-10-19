@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Roommate Peacekeeper</title>
+<style>
+  :root {
+    --bg: #faf7f1;
+    --card: #ffffff;
+    --ink: #2d2a26;
+    --muted: #8a8278;
+    --line: #e8e2d8;
+    --sage: #5b8a72;
+    --sage-soft: #e3efe9;
+    --terra: #c96f4a;
+    --terra-soft: #f7e8e0;
+    --shadow: 0 2px 10px rgba(45, 42, 38, .07);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.45;
+  }
+  header {
+    padding: 28px 20px 10px;
+    text-align: center;
+  }
+  header h1 { margin: 0; font-size: 1.7rem; letter-spacing: -0.02em; }
+  header p { margin: 6px 0 0; color: var(--muted); font-size: .95rem; }
+  main {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 18px 20px 60px;
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    padding: 18px;
+  }
+  .card h2 {
+    margin: 0 0 12px;
+    font-size: .8rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+  }
+  .setup { display: grid; gap: 18px; }
+
+  .row { display: flex; gap: 8px; }
+  input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    font: inherit;
+    background: #fff;
+    color: var(--ink);
+  }
+  input[type="number"] { width: 70px; flex: none; }
+  input:focus { outline: 2px solid var(--sage); outline-offset: -1px; border-color: transparent; }
+
+  button {
+    font: inherit;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    padding: 9px 14px;
+    border-radius: 9px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  button:hover { border-color: #cfc6b8; }
+  button.primary { background: var(--sage); border-color: var(--sage); color: #fff; }
+  button.primary:hover { background: #4e7a64; }
+  button.ghost { color: var(--muted); }
+  button.danger { color: var(--terra); }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--sage-soft);
+    border-radius: 999px;
+    padding: 5px 6px 5px 12px;
+    font-size: .92rem;
+  }
+  .chip .x {
+    border: none; background: none; padding: 2px 8px;
+    border-radius: 999px; color: var(--muted); font-size: .95rem; cursor: pointer;
+  }
+  .chip .x:hover { color: var(--terra); background: rgba(0,0,0,.05); }
+
+  ul.chore-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 6px; }
+  ul.chore-list li {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    font-size: .92rem;
+  }
+  ul.chore-list li .name { flex: 1; }
+  .pts {
+    background: var(--terra-soft); color: var(--terra);
+    border-radius: 6px; padding: 1px 8px;
+    font-size: .8rem; font-weight: 600;
+  }
+  .del { border: none; background: none; color: var(--muted); padding: 2px 6px; cursor: pointer; }
+  .del:hover { color: var(--terra); }
+  .hint { color: var(--muted); font-size: .82rem; margin: 10px 0 0; }
+
+  .week-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+  }
+  .week-head h2 { margin: 0; font-size: 1.2rem; }
+  .week-head .dates { color: var(--muted); font-size: .9rem; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .person {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; box-shadow: var(--shadow); padding: 16px;
+  }
+  .person .who { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: grid; place-items: center;
+    color: #fff; font-weight: 700; font-size: .85rem;
+  }
+  .person .who b { font-size: 1rem; }
+  .person .who .total { margin-left: auto; color: var(--muted); font-size: .82rem; }
+  .person ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .person li { display: flex; align-items: center; gap: 8px; font-size: .92rem; }
+  .person li.done span.name { text-decoration: line-through; color: var(--muted); }
+  .person li .pts { margin-left: auto; }
+  .person input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--sage); cursor: pointer; }
+  .empty {
+    grid-column: 1 / -1; text-align: center; color: var(--muted);
+    border: 1px dashed var(--line); border-radius: 14px; padding: 40px 20px;
+  }
+
+  .stats { grid-column: 1 / -1; }
+  .bar-row { display: grid; grid-template-columns: 90px 1fr 52px; align-items: center; gap: 10px; margin: 8px 0; font-size: .9rem; }
+  .bar-track { background: var(--line); border-radius: 6px; height: 14px; overflow: hidden; }
+  .bar-fill { background: var(--sage); height: 100%; border-radius: 6px; min-width: 2px; }
+  .bar-val { color: var(--muted); text-align: right; }
+
+  footer { grid-column: 1 / -1; text-align: center; margin-top: 8px; }
+  footer button { font-size: .82rem; }
+
+  @media (max-width: 760px) {
+    main { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Roommate Peacekeeper</h1>
+  <p>Fair chore splits: balanced effort, rotating duties, zero arguments.</p>
+</header>
+
+<main>
+  <div class="setup">
+    <section class="card">
+      <h2>Roommates</h2>
+      <form id="roommate-form" class="row">
+        <input type="text" id="roommate-name" placeholder="Name" maxlength="24" autocomplete="off">
+        <button type="submit" class="primary">Add</button>
+      </form>
+      <div class="chips" id="roommate-chips"></div>
+    </section>
+
+    <section class="card">
+      <h2>Chores</h2>
+      <form id="chore-form" class="row">
+        <input type="text" id="chore-name" placeholder="Chore" maxlength="40" autocomplete="off">
+        <input type="number" id="chore-points" min="1" max="10" value="3" title="Effort points (1–10)">
+        <button type="submit" class="primary">Add</button>
+      </form>
+      <ul class="chore-list" id="chore-list"></ul>
+      <p class="hint">Points = effort. A gross bathroom clean is worth more than taking out the trash.</p>
+    </section>
+  </div>
+
+  <section class="schedule">
+    <div class="week-head">
+      <div>
+        <h2 id="week-title">Week 1</h2>
+        <div class="dates" id="week-dates"></div>
+      </div>
+      <div class="btn-row">
+        <button id="reassign" class="ghost">Shuffle</button>
+        <button id="copy" class="ghost">Copy for group chat</button>
+        <button id="new-week" class="primary">Finish week &amp; start next</button>
+      </div>
+    </div>
+    <div class="grid" id="assignments"></div>
+  </section>
+
+  <section class="card stats">
+    <h2>Cumulative workload — should stay roughly even</h2>
+    <div id="stats-bars"></div>
+  </section>
+
+  <footer>
+    <button id="reset" class="danger">Reset everything</button>
+  </footer>
+</main>
+
+<script>
+"use strict";
+
+const STORE_KEY = "roommate-peacekeeper-v1";
+const AVATAR_COLORS = ["#5b8a72", "#c96f4a", "#7a6fb0", "#4a7fa5", "#a5843f", "#b05f7a"];
+
+const DEFAULT_CHORES = [
+  ["Dishes", 4],
+  ["Take out trash & recycling", 2],
+  ["Clean bathroom", 5],
+  ["Vacuum common areas", 3],
+  ["Wipe kitchen counters", 2],
+  ["Mop floors", 3],
+];
+
+const uid = () => Math.random().toString(36).slice(2, 10);
+
+function mondayOf(d) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+  return x;
+}
+
+function initialState() {
+  return {
+    roommates: [],
+    chores: DEFAULT_CHORES.map(([name, points]) => ({ id: uid(), name, points })),
+    weekOneStart: mondayOf(new Date()).toISOString(),
+    week: { n: 1, assign: {}, done: {} },
+    history: [],
+  };
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { /* corrupted state falls through to fresh */ }
+  return initialState();
+}
+
+let state = load();
+const save = () => localStorage.setItem(STORE_KEY, JSON.stringify(state));
+
+const $ = (sel) => document.querySelector(sel);
+
+function roommateById(id) { return state.roommates.find(r => r.id === id); }
+function choreById(id) { return state.chores.find(c => c.id === id); }
+
+function colorFor(id) {
+  let h = 0;
+  for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
+function initials(name) {
+  return name.trim().split(/\s+/).map(w => w[0]).join("").slice(0, 2).toUpperCase();
+}
+
+function weeksSince(choreId, roommateId) {
+  for (let i = state.history.length - 1; i >= 0; i--) {
+    if (state.history[i].assign[choreId] === roommateId) {
+      return state.history.length - i;
+    }
+  }
+  return state.history.length + 1;
+}
+
+function generateAssignments() {
+  const rs = state.roommates, cs = state.chores;
+  const assign = {};
+  if (!rs.length) return assign;
+
+  const loads = Object.fromEntries(rs.map(r => [r.id, 0]));
+  const stale = (c, r) => Math.min(weeksSince(c, r), 4);
+
+  const ordered = [...cs].sort((a, b) => b.points - a.points || Math.random() - 0.5);
+  for (const c of ordered) {
+    let best = null, bestCost = Infinity;
+    for (const r of rs) {
+      const cost = loads[r.id] + c.points - 0.75 * stale(c.id, r.id) + Math.random() * 0.4;
+      if (cost < bestCost) { bestCost = cost; best = r.id; }
+    }
+    assign[c.id] = best;
+    loads[best] += c.points;
+  }
+
+  const scoreOf = (a) => {
+    const l = Object.fromEntries(rs.map(r => [r.id, 0]));
+    let total = 0;
+    for (const c of cs) { l[a[c.id]] += c.points; total += c.points; }
+    const mean = total / rs.length;
+    let v = 0;
+    for (const r of rs) v += (l[r.id] - mean) ** 2;
+    let rot = 0;
+    for (const c of cs) rot += stale(c.id, a[c.id]);
+    return v - 0.75 * rot;
+  };
+
+  let improved = true, guard = 0;
+  while (improved && guard++ < 100) {
+    improved = false;
+    const cur = scoreOf(assign);
+    let bestDelta = 1e-9, bestMove = null;
+
+    for (const c of cs) {
+      for (const r of rs) {
+        if (assign[c.id] === r.id) continue;
+        const prev = assign[c.id];
+        assign[c.id] = r.id;
+        const d = cur - scoreOf(assign);
+        assign[c.id] = prev;
+        if (d > bestDelta) { bestDelta = d; bestMove = { type: "move", c: c.id, r: r.id }; }
+      }
+    }
+    for (let i = 0; i < cs.length; i++) {
+      for (let j = i + 1; j < cs.length; j++) {
+        const a = cs[i].id, b = cs[j].id;
+        if (assign[a] === assign[b]) continue;
+        [assign[a], assign[b]] = [assign[b], assign[a]];
+        const d = cur - scoreOf(assign);
+        [assign[a], assign[b]] = [assign[b], assign[a]];
+        if (d > bestDelta) { bestDelta = d; bestMove = { type: "swap", a, b }; }
+      }
+    }
+
+    if (bestMove) {
+      if (bestMove.type === "move") assign[bestMove.c] = bestMove.r;
+      else [assign[bestMove.a], assign[bestMove.b]] = [assign[bestMove.b], assign[bestMove.a]];
+      improved = true;
+    }
+  }
+  return assign;
+}
+
+function weekRange(n) {
+  const start = mondayOf(new Date(state.weekOneStart));
+  start.setDate(start.getDate() + 7 * (n - 1));
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  const fmt = (d) => d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return `${fmt(start)} – ${fmt(end)}`;
+}
+
+function ensureAssign() {
+  if (!state.roommates.length || !state.chores.length) return;
+  const unassigned = state.chores.some(c => !roommateById(state.week.assign[c.id]));
+  if (unassigned) state.week.assign = generateAssignments();
+}
+
+function render() {
+  ensureAssign();
+
+  const chips = $("#roommate-chips");
+  chips.innerHTML = "";
+  for (const r of state.roommates) {
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.innerHTML = `<span></span><button class="x" title="Remove">&times;</button>`;
+    chip.firstElementChild.textContent = r.name;
+    chip.querySelector(".x").onclick = () => {
+      state.roommates = state.roommates.filter(x => x.id !== r.id);
+      for (const cid of Object.keys(state.week.assign)) {
+        if (state.week.assign[cid] === r.id) delete state.week.assign[cid];
+      }
+      save(); render();
+    };
+    chips.appendChild(chip);
+  }
+  if (!state.roommates.length) {
+    chips.innerHTML = `<span class="hint">Add your roommates to get started.</span>`;
+  }
+
+  const list = $("#chore-list");
+  list.innerHTML = "";
+  for (const c of state.chores) {
+    const li = document.createElement("li");
+    li.innerHTML = `<span class="name"></span><span class="pts">${c.points} pts</span><button class="del" title="Remove">&times;</button>`;
+    li.querySelector(".name").textContent = c.name;
+    li.querySelector(".del").onclick = () => {
+      state.chores = state.chores.filter(x => x.id !== c.id);
+      delete state.week.assign[c.id];
+      delete state.week.done[c.id];
+      save(); render();
+    };
+    list.appendChild(li);
+  }
+
+  $("#week-title").textContent = `Week ${state.week.n}`;
+  $("#week-dates").textContent = weekRange(state.week.n);
+
+  const grid = $("#assignments");
+  grid.innerHTML = "";
+  if (!state.roommates.length || !state.chores.length) {
+    grid.innerHTML = `<div class="empty">Add at least one roommate and one chore,<br>then the schedule appears here.</div>`;
+  } else {
+    for (const r of state.roommates) {
+      const mine = state.chores.filter(c => state.week.assign[c.id] === r.id);
+      const total = mine.reduce((s, c) => s + c.points, 0);
+      const div = document.createElement("div");
+      div.className = "person";
+      div.innerHTML = `
+        <div class="who">
+          <span class="avatar" style="background:${colorFor(r.id)}">${initials(r.name)}</span>
+          <b></b><span class="total">${total} pts</span>
+        </div>
+        <ul></ul>`;
+      div.querySelector("b").textContent = r.name;
+      const ul = div.querySelector("ul");
+      for (const c of mine) {
+        const li = document.createElement("li");
+        if (state.week.done[c.id]) li.className = "done";
+        li.innerHTML = `<input type="checkbox" ${state.week.done[c.id] ? "checked" : ""}>
+          <span class="name"></span><span class="pts">${c.points}</span>`;
+        li.querySelector(".name").textContent = c.name;
+        li.querySelector("input").onchange = (e) => {
+          state.week.done[c.id] = e.target.checked;
+          save(); render();
+        };
+        ul.appendChild(li);
+      }
+      if (!mine.length) {
+        ul.innerHTML = `<li style="color:var(--muted)">Off duty this week</li>`;
+      }
+      grid.appendChild(div);
+    }
+
+    const orphans = state.chores.filter(c => !roommateById(state.week.assign[c.id]));
+    if (orphans.length) {
+      const div = document.createElement("div");
+      div.className = "person";
+      div.innerHTML = `<div class="who"><b>Unassigned</b></div><ul></ul>`;
+      const ul = div.querySelector("ul");
+      for (const c of orphans) {
+        const li = document.createElement("li");
+        li.innerHTML = `<span class="name"></span><span class="pts">${c.points}</span>`;
+        li.querySelector(".name").textContent = c.name;
+        ul.appendChild(li);
+      }
+      grid.appendChild(div);
+    }
+  }
+
+  const totals = Object.fromEntries(state.roommates.map(r => [r.id, 0]));
+  const allWeeks = [...state.history, state.week];
+  for (const w of allWeeks) {
+    for (const c of state.chores.concat(historyOnlyChores(w))) {
+      const rid = w.assign[c.id];
+      if (rid in totals) totals[rid] += c.points ?? (w.points?.[c.id] || 0);
+    }
+  }
+  const bars = $("#stats-bars");
+  bars.innerHTML = "";
+  if (state.roommates.length) {
+    const max = Math.max(1, ...Object.values(totals));
+    for (const r of state.roommates) {
+      const row = document.createElement("div");
+      row.className = "bar-row";
+      row.innerHTML = `<span></span>
+        <div class="bar-track"><div class="bar-fill" style="width:${(totals[r.id] / max) * 100}%"></div></div>
+        <span class="bar-val">${totals[r.id]} pts</span>`;
+      row.firstElementChild.textContent = r.name;
+      bars.appendChild(row);
+    }
+  } else {
+    bars.innerHTML = `<p class="hint">Stats appear once roommates are added.</p>`;
+  }
+  save();
+}
+
+function historyOnlyChores(week) {
+  return Object.keys(week.assign)
+    .filter(cid => !choreById(cid))
+    .map(cid => ({ id: cid, points: week.points?.[cid] || 0 }));
+}
+
+function startNewWeek() {
+  const points = Object.fromEntries(state.chores.map(c => [c.id, c.points]));
+  state.history.push({ n: state.week.n, assign: { ...state.week.assign }, done: { ...state.week.done }, points });
+  state.week = { n: state.week.n + 1, assign: generateAssignments(), done: {} };
+  save(); render();
+}
+
+function copySchedule() {
+  const lines = [`Roommate Peacekeeper — Week ${state.week.n} (${weekRange(state.week.n)})`, ""];
+  for (const r of state.roommates) {
+    const mine = state.chores.filter(c => state.week.assign[c.id] === r.id);
+    const total = mine.reduce((s, c) => s + c.points, 0);
+    lines.push(`${r.name} — ${total} pts`);
+    for (const c of mine) {
+      lines.push(`  ${state.week.done[c.id] ? "[x]" : "[ ]"} ${c.name} (${c.points})`);
+    }
+    if (!mine.length) lines.push("  (off duty)");
+    lines.push("");
+  }
+  navigator.clipboard.writeText(lines.join("\n")).then(() => {
+    const btn = $("#copy");
+    btn.textContent = "Copied!";
+    setTimeout(() => (btn.textContent = "Copy for group chat"), 1400);
+  });
+}
+
+$("#roommate-form").onsubmit = (e) => {
+  e.preventDefault();
+  const name = $("#roommate-name").value.trim();
+  if (!name) return;
+  state.roommates.push({ id: uid(), name });
+  $("#roommate-name").value = "";
+  save(); render();
+};
+
+$("#chore-form").onsubmit = (e) => {
+  e.preventDefault();
+  const name = $("#chore-name").value.trim();
+  const points = Math.max(1, Math.min(10, +$("#chore-points").value || 3));
+  if (!name) return;
+  state.chores.push({ id: uid(), name, points });
+  $("#chore-name").value = "";
+  save(); render();
+};
+
+$("#reassign").onclick = () => { state.week.assign = generateAssignments(); state.week.done = {}; save(); render(); };
+$("#new-week").onclick = startNewWeek;
+$("#copy").onclick = copySchedule;
+$("#reset").onclick = () => {
+  if (confirm("Wipe all roommates, chores, and history?")) {
+    state = initialState();
+    save(); render();
+  }
+};
+
+render();
+</script>
+</body>
+</html>
